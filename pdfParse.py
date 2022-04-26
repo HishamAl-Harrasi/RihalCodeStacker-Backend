@@ -4,43 +4,37 @@ from nltk.corpus import stopwords
 from collections import Counter
 import re
 
+
 def parseResume(fileName=None, keywords=None):
     keywords = [word.lower() for word in keywords]
+    regex = createRegex(keywords)
 
-    stopwordsToStrip = stopwords.words('english')
+    # stopwordsToStrip = stopwords.words('english')
 
-    extractedText = extract_text('HishamCV.pdf')
-    
-    sentences = sent_tokenize(extractedText)
-    words = []
+    extractedText = extract_text(fileName)
+    extractedText = extractedText.replace(",", "").lower()
 
-    sentencesNoStopWords = []
-    for line in sentences:
-        # words.append(word_tokenize(line))
+    # sentences = sent_tokenize(extractedText)
 
-        strippedSentence = [word for word in line.split() if word.lower() not in stopwordsToStrip] # Reference: https://bit.ly/3rPXPCO
-        for i, word in enumerate(strippedSentence):
-            word.replace(",", "")
-            strippedSentence[i] = word.lower()
-        
-        print(Counter(strippedSentence), "\n\n\n")
+    keywordsFound = []
 
-        regex = createRegex(keywords)
+    splitText = splitTextByLinebreak(extractedText)
+    for line in splitText:
+        match = re.search(regex, line)
+        if match:
+            keywordsFound.append({"keyword": match.group(), "sentence": line})
 
-        print(regex)
-
-        regexMatches  = []
-
-        for word in strippedSentence:
-            match = re.match(regex, word)
-            if match != None:
-                regexMatches.append(match)
-
-        test = re.match(regex, extractedText)
-        print(test)
-        # print(regexMatches)
+    return keywordsFound
 
 
+def splitTextByLinebreak(inputText):
+    # Split the text into lines - The split point would be a linebreak '\n'
+    splitText = inputText.splitlines()
+    # splitText = inputText.split(". ")
+
+    splitText = filter(None, splitText)
+
+    return splitText
 
 
 def createRegex(keywords):
@@ -52,16 +46,10 @@ def createRegex(keywords):
             regex += keyword
         else:
             regex += f"|{keyword}"
-    
+
     return regex
 
 
+if __name__ == "__main__":
 
-
-parseResume("temp", ["Computer Science", "CyberSecurity", "React", "Warwick"])
-
-        
-
-
-
-
+    parseResume("temp", ["Cyber", "authentication", "React", "SQL", "Docker"])
