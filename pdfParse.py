@@ -3,15 +3,16 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
 from collections import Counter
 import re
+import helperFunctions
 
 
-def parseResume(fileName=None, keywords=None):
+def parseResume(filePath, keywords):
     keywords = [word.lower() for word in keywords]
     regex = createRegex(keywords)
 
     # stopwordsToStrip = stopwords.words('english')
 
-    extractedText = extract_text(fileName)
+    extractedText = extract_text(filePath)
     extractedText = extractedText.replace(",", "").lower()
 
     # sentences = sent_tokenize(extractedText)
