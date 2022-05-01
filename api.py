@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 from uuid import uuid4
 from dotenv import load_dotenv
+from urllib3 import HTTPResponse
 from pdfParse import parseResume
 import os
 import magic
@@ -34,7 +35,8 @@ async def uploadFile(files: List[UploadFile] = File(...), keywords: List[str] = 
         HTTPException(
             status_code=422, detail="No files or keywords were provided in the request")
 
-    httpResponse = []
+    acceptedFiles = []      # Array containing the files for which keywords were found
+    unacceptedFiles = []    # Array containing the files for which no keywords were found
     saveMode = True if RESUME_SAVE_MODE == "True" else False
 
     for file in files:
@@ -60,8 +62,11 @@ async def uploadFile(files: List[UploadFile] = File(...), keywords: List[str] = 
 
                 keywordsFound = parseResume(fullPath, keywords)
 
-                httpResponse.append(
-                    {"filename": file.filename, "keywordsFound": keywordsFound})
+                if len(keywordsFound) > 0:
+                    acceptedFiles.append(
+                        {"filename": file.filename, "keywordsFound": keywordsFound})
+                else:
+                    unacceptedFiles.append({"filename": file.filename})
 
                 if (not saveMode):
                     os.remove(fullPath)  # Delete file after analysis
@@ -69,5 +74,9 @@ async def uploadFile(files: List[UploadFile] = File(...), keywords: List[str] = 
             except:
                 raise HTTPException(
                     status_code=422, detail="An error has occurred proccessing the uploaded documents")
+
+    httpResponse = {}
+    httpResponse["acceptedFiles"] = acceptedFiles
+    httpResponse["unacceptedFiles"] = unacceptedFiles
 
     return httpResponse
