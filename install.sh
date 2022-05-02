@@ -1,2 +1,4 @@
-pip3 install python-magic
-pip3 install PyPDF2
+#!/bin/bash
+
+apt-get update
+apt-get -y install libmagic-dev
